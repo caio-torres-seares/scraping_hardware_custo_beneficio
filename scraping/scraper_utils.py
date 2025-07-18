@@ -1,10 +1,41 @@
 import re
 import unicodedata
+from datetime import datetime
 
 def normalize_text(text: str) -> str:
     return unicodedata.normalize("NFKD", text).encode("ASCII", "ignore").decode("ASCII")
 
-def extract_parcel_info_pichau(item):
+def extract_parcel_info_kabum(item: str) -> tuple[str, str]:
+    try:
+        installments_div = item.query_selector(".priceTextCard")
+        if not installments_div:
+            return {"installments": None, "installment_price": None}
+
+        # Pega o <b> que contém algo como "10x de R$ 59,78"
+        installments_b = installments_div.query_selector("b")
+        if not installments_b:
+            return {"installments": None, "installment_price": None}
+
+        b_text = installments_b.inner_text().strip()  # Ex: "10x de R$ 59,78"
+
+        match = re.search(r"(\d+)\s*x\s*de\s*R\$\s*([\d.,]+)", b_text, re.IGNORECASE)
+        if match:
+            installments = int(match.group(1))
+            installment_price = float(match.group(2).replace(".", "").replace(",", "."))
+        else:
+            installments = None
+            installment_price = None
+
+        return {
+            "installments": installments,
+            "installment_price": installment_price
+        }
+
+    except Exception as e:
+        print(f"Erro ao extrair preço parcelado da Kabum: {e}")
+        return {"installments": None, "installment_price": None}
+
+def extract_parcel_info_pichau(item: str) -> tuple[str, str]:
     try:
         installments_div = item.query_selector(".mui-144008r-mainWrapper")
 
@@ -27,7 +58,7 @@ def extract_parcel_info_pichau(item):
         print(f"Error extracting installment information: {e}")
         return {"installments": None, "installment_price": None}
     
-def extract_parcel_info_terabyte(item):
+def extract_parcel_info_terabyte(item: str) -> tuple[str, str]:
     try:
         installments_div = item.query_selector(".product-item__juros")
         if not installments_div:
@@ -152,3 +183,6 @@ def extract_gpu_manufacturer(title: str) -> str:
 def extract_gpu_memory(title: str) -> str:
     match = re.search(r"(\d+)\s*GB", title, re.IGNORECASE)
     return match.group(1) + "GB" if match else "N/A"
+
+def get_today_date() -> str:
+    return datetime.now().strftime("%Y-%m-%d")

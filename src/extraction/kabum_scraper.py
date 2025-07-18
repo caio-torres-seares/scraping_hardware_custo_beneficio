@@ -4,27 +4,39 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from scraping.scraper_utils import (
-    extract_parcel_info_terabyte,
+from extraction.scraper_utils import (
+    extract_parcel_info_kabum,
     extract_gpu_memory,
     extract_brand,
-    extract_gpu_manufacturer,
     extract_cpu_model_and_variant,
     extract_gpu_model_and_variant,
     extract_cpu_socket
 )
 
-def terabyte_cpu_scraper():
-    url = "https://www.terabyteshop.com.br/hardware/processadores"
+# Kabum não padroniza a posição do nome dos fabricantes, então vamos usamos uma abordagem diferente
+def extract_gpu_manufacturer_kabum(title: str) -> str:
+    title_upper = title.upper()
+    
+    # Lista comum de fabricantes
+    manufacturers = ["ASROCK", "GIGABYTE", "XFX", "MSI", "ZOTAC", "GALAX", "PNY", "EVGA", "POWER COLOR", "SAPPHIRE", "ASUS", "INNO3D", "COLORFUL", "GAINWARD", "AFOX", "PCYES"]
+
+    for m in manufacturers:
+        if m in title_upper:
+            return m  
+    return None 
+
+
+def kabum_cpu_scraper():
+    url = "https://www.kabum.com.br/hardware/processadores"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Terabyte CPU page...")
+        print("Navigating to Kabum CPU page...")
         page.goto(url, timeout=60000)
 
         print("Product cards loaded. Scraping CPU data...")
         # Get all CPU items
-        products = page.query_selector_all('div.product-item__box')
+        products = page.query_selector_all('a.productLink')
         if not products:
             print("No CPU products found.")
             browser.close()
@@ -35,16 +47,16 @@ def terabyte_cpu_scraper():
         
         for product in products:
             try:
-                name_tag = product.query_selector("a.product-item__name")
+                name_tag = product.query_selector("span.nameCard")
                 product_title = name_tag.inner_text().strip() if name_tag else "N/A"
 
-                link = name_tag.get_attribute("href") if name_tag else "N/A"
-                product_link = link if link else "N/A"
+                link = product.get_attribute("href")
+                product_link = "https://www.kabum.com.br/produto" + link if link else "N/A"
 
-                price_tag = product.query_selector("div.product-item__new-price span")
-                product_price_cash = price_tag.inner_text().strip() if price_tag else "N/A"
+                price_tag = product.query_selector("span.priceCard")
+                product_price_cash = price_tag.inner_text().strip() if price_tag else None
 
-                product_parcel_info = extract_parcel_info_terabyte(product)
+                product_parcel_info = extract_parcel_info_kabum(product)
 
                 product_socket = extract_cpu_socket(product_title)
 
@@ -62,7 +74,7 @@ def terabyte_cpu_scraper():
                     "installment_price": product_parcel_info["installment_price"],
                     "full_title": product_title,
                     "link": product_link,
-                    "store": "Terabyte"
+                    "store": "Kabum"
                 })
 
             except Exception as e:
@@ -72,17 +84,17 @@ def terabyte_cpu_scraper():
         browser.close()
         return cpus
 
-def terabyte_gpu_scraper():
-    url = "https://www.terabyteshop.com.br/hardware/placas-de-video"
+def kabum_gpu_scraper():
+    url = "https://www.kabum.com.br/hardware/placa-de-video-vga"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Terabyte GPU page...")
+        print("Navigating to Kabum GPU page...")
         page.goto(url, timeout=60000)
 
         print("Product cards loaded. Scraping GPU data...")
         # Get all GPU items
-        products = page.query_selector_all('div.product-item__box')
+        products = page.query_selector_all('a.productLink')
         if not products:
             print("No GPU products found.")
             browser.close()
@@ -93,22 +105,22 @@ def terabyte_gpu_scraper():
         
         for product in products:
             try:
-                name_tag = product.query_selector("a.product-item__name")
+                name_tag = product.query_selector("span.nameCard")
                 product_title = name_tag.inner_text().strip() if name_tag else "N/A"
 
-                link = name_tag.get_attribute("href") if name_tag else "N/A"
-                product_link = link if link else "N/A"
+                link = product.get_attribute("href")
+                product_link = "https://www.kabum.com.br/produto" + link if link else "N/A"
 
-                price_tag = product.query_selector("div.product-item__new-price span")
-                product_price_cash = price_tag.inner_text().strip() if price_tag else "N/A"
+                price_tag = product.query_selector("span.priceCard")
+                product_price_cash = price_tag.inner_text().strip() if price_tag else None
 
-                product_parcel_info = extract_parcel_info_terabyte(product)
+                product_parcel_info = extract_parcel_info_kabum(product)
 
                 product_memory = extract_gpu_memory(product_title)
 
                 product_gpu_brand = extract_brand(product_title)
 
-                product_manufacturer = extract_gpu_manufacturer(product_title)
+                product_manufacturer = extract_gpu_manufacturer_kabum(product_title)
 
                 product_gpu_base_model, product_gpu_custom_model = extract_gpu_model_and_variant(product_title, product_gpu_brand)
 
@@ -122,7 +134,7 @@ def terabyte_gpu_scraper():
                     "installments": product_parcel_info["installments"],
                     "installment_price": product_parcel_info["installment_price"],
                     "full_title": product_title,
-                    "store": "Terabyte",
+                    "store": "Kabum",
                     "link": product_link
                 })
 
@@ -134,22 +146,20 @@ def terabyte_gpu_scraper():
         return gpus
 
 if __name__ == "__main__":
-    cpus = terabyte_cpu_scraper()
-    gpus = terabyte_gpu_scraper()
+    cpus = kabum_cpu_scraper()
+    gpus = kabum_gpu_scraper()
     pd.options.display.max_columns = None
 
-    # if cpus:
-    #     print(f"Scraped {len(cpus)} CPUs from Terabyte.")
-    #     # Convert to DataFrame for better visualization
-    #     df = pd.DataFrame(cpus)
-    #     print(df.head())
-    # else:
-    #     print("No CPUs found.")
+    if cpus:
+        print(f"Scraped {len(cpus)} CPUs from Kabum.")
+        df = pd.DataFrame(cpus)
+        print(df.head())
+    else:
+        print("No CPUs found.")
 
     if gpus:
-        print(f"Scraped {len(gpus)} GPUs from Terabyte.")
-        # Convert to DataFrame for better visualization
+        print(f"Scraped {len(gpus)} GPUs from Kabum.")
         df_gpus = pd.DataFrame(gpus)
-        print(df_gpus.head())
+        print(df_gpus.head(50))
     else:
         print("No GPUs found.")

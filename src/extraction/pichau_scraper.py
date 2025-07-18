@@ -5,14 +5,15 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from scraping.scraper_utils import (
+from extraction.scraper_utils import (
     extract_parcel_info_pichau,
     extract_gpu_memory,
     extract_brand,
     extract_gpu_manufacturer,
     extract_cpu_model_and_variant,
     extract_gpu_model_and_variant,
-    extract_cpu_socket
+    extract_cpu_socket,
+    get_today_date
 )
 
 def pichau_cpu_scraper():
@@ -147,9 +148,9 @@ if __name__ == "__main__":
 
     print("CPUs:\n", df_cpus.head(50))
     print("\nGPUs:\n", df_gpus.head())
-
-    df_cpus.to_csv("data/raw/pichau_cpus.csv", index=False)
-    df_gpus.to_csv("data/raw/pichau_gpus.csv", index=False)
+    hoje = get_today_date()
+    df_cpus.to_csv(f"data/raw/pichau/cpus/cpus_{hoje}.csv", index=False)
+    df_gpus.to_csv(f"data/raw/pichau/gpus/gpus_{hoje}.csv", index=False)
 
     # for cpu in cpus:
     #      print(f"Brand: {cpu['brand']}, Model: {cpu['base_model']}, Custom Model: {cpu['custom_model']}, Title: {cpu['full_title']}, Price: {cpu['cash_price']}, cores: {cpu['cores']}, threads: {cpu['threads']}, Base Clock: {cpu['clock_speed_base']}, Max Clock: {cpu['clock_speed_max']}, Cache: {cpu['cache_mb']}")

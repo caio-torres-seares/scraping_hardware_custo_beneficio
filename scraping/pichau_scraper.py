@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 import re
 
 def pichau_cpu_scraper():
-    url = "https://www.pichau.com.br/hardware/processadores?page=1"
+    url = "https://www.pichau.com.br/hardware/processadores"
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
@@ -40,7 +40,14 @@ def pichau_cpu_scraper():
                 product_clock_speed_base, product_clock_speed_max = extract_cpu_clock_speeds(product_title)
                 product_cache = extract_cpu_cache(product_title)
 
+                product_brand = extract_brand(product_title)
+
+                product_cpu_base_model, product_cpu_variant = extract_cpu_model_and_variant(product_title, product_brand)
+
                 cpus.append({
+                    "brand": product_brand,
+                    "base_model": product_cpu_base_model,
+                    "variant": product_cpu_variant,
                     "full_title": product_title,
                     "cash_price": product_price_cash,
                     "installments": product_parcel_info["installments"],
@@ -98,7 +105,7 @@ def pichau_gpu_scraper():
 
                 product_memory = extract_gpu_memory(product_title)
 
-                product_gpu_brand = extract_gpu_brand(product_title)
+                product_gpu_brand = extract_brand(product_title)
 
                 product_manufacturer = extract_gpu_manufacturer(product_title)
 
@@ -139,6 +146,8 @@ def extract_parcel_info(item):
             installment_price = float(match.group(2).replace(".", "").replace(",", "."))
         else:
             print("Não foi possível extrair os dados.")
+            installments = "N/A"
+            installment_price = "N/A"
         return {
             "installments": installments,
             "installment_price": installment_price
@@ -175,17 +184,59 @@ def extract_gpu_memory(title: str) -> str:
     match = re.search(r"(\d+)\s*GB", title, re.IGNORECASE)
     return match.group(1) + "GB" if match else "N/A"
 
-def extract_gpu_brand(title: str) -> str:
+def extract_brand(title: str) -> str:
     title = title.lower()
 
-    if "radeon" in title or re.search(r"\brx\s?\d+", title):
+    # Marca AMD: GPUs Radeon RX / CPUs Ryzen
+    if ("ryzen" in title or "radeon" in title or re.search(r"\brx\s?\d+", title)):
         return "AMD"
-    elif "geforce" in title or re.search(r"\b(gtx|rtx)\s?\d+", title):
+
+    # Marca NVIDIA: GPUs RTX / GTX
+    elif ("geforce" in title or re.search(r"\b(gtx|rtx)\s?\d+", title)):
         return "NVIDIA"
-    elif "arc" in title or "intel" in title:
+
+    # Marca Intel: GPUs ARC / CPUs Core iX
+    elif ("intel" in title or "core i" in title or "arc" in title):
         return "INTEL"
-    else:
-        return "N/A"
+
+    return "N/A"
+
+def extract_cpu_model_and_variant(title: str, brand: str) -> tuple[str, str]:
+    title_upper = title.upper()
+    brand_upper = brand.upper()
+    
+    base_model = "N/A"
+    variant = "N/A"
+
+    if "AMD" in brand_upper:
+        match = re.search(r"RYZEN\s*(\d\s*)?(\d{3,5}X?3?D?)", title_upper)
+        if match:
+            base_model = match.group(2).strip()
+
+            pre_match = re.search(r"(RYZEN\s*\d?)", title_upper)
+            if pre_match:
+                variant = pre_match.group(0).strip()
+    
+    elif "INTEL" in brand_upper:
+        match = re.search(r"CORE\sULTRA\s\d\s(\d{3,5}[A-Z]{0,2})", title_upper)
+        if match:
+            base_model = match.group(1).strip()
+            variant_match = re.search(r"CORE\sULTRA\s(\d)", title_upper)
+            if variant_match:
+                variant = f"Ultra {variant_match.group(1)}"
+
+        else:
+            match = re.search(r"I[3579]-?\s?(\d{4,5}[A-Z]{0,2})", title_upper)
+            if match:
+                base_model = match.group(1).strip()
+                variant_match = re.search(r"CORE\s(I[3579])", title_upper)
+                if variant_match:
+                    variant = variant_match.group(1)
+
+
+
+    return base_model, variant
+
 
 def extract_gpu_model_and_variant(title: str, product_brand: str) -> tuple[str, str]:
     original_title = title.strip()
@@ -229,7 +280,7 @@ if __name__ == "__main__":
     gpus = pichau_gpu_scraper()
 
     for cpu in cpus:
-         print(f"Title: {cpu['full_title']}, Price: {cpu['cash_price']}, cores: {cpu['cores']}, threads: {cpu['threads']}, Base Clock: {cpu['clock_speed_base']}, Max Clock: {cpu['clock_speed_max']}, Cache: {cpu['cache_mb']}")
+         print(f"Brand: {cpu['brand']}, Model: {cpu['base_model']}, Custom Model: {cpu['custom_model']}, Title: {cpu['full_title']}, Price: {cpu['cash_price']}, cores: {cpu['cores']}, threads: {cpu['threads']}, Base Clock: {cpu['clock_speed_base']}, Max Clock: {cpu['clock_speed_max']}, Cache: {cpu['cache_mb']}")
     
-    for gpu in gpus:
-        print(f"Brand: {gpu['brand']}, Model: {gpu['base_model']}, custom_model: {gpu['custom_model']}, Price: {gpu['cash_price']}, Memory: {gpu['vram_memory']}, Manufacturer: {gpu['manufacturer']}, title: {gpu['full_title']}")
+    # for gpu in gpus:
+    #     print(f"Brand: {gpu['brand']}, Model: {gpu['base_model']}, Custom Model: {gpu['custom_model']}, Price: {gpu['cash_price']}, Memory: {gpu['vram_memory']}, Manufacturer: {gpu['manufacturer']}, Title: {gpu['full_title']}")

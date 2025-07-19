@@ -12,8 +12,7 @@ from extraction.scraper_utils import (
     extract_gpu_manufacturer,
     extract_cpu_model_and_variant,
     extract_gpu_model_and_variant,
-    extract_cpu_socket,
-    get_today_date
+    extract_cpu_socket
 )
 
 def pichau_cpu_scraper():
@@ -21,12 +20,8 @@ def pichau_cpu_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Pichau CPU page...")
         page.goto(url, timeout=60000)
 
-        print("Waiting for product cards to load...")
-
-        print("Product cards loaded. Scraping CPU data...")
         # Get all CPU items
         products = page.query_selector_all('a[data-cy="list-product"]')
         if not products:
@@ -81,12 +76,8 @@ def pichau_gpu_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Pichau GPU page...")
         page.goto(url, timeout=60000)
 
-        print("Waiting for product cards to load...")
-
-        print("Product cards loaded. Scraping GPU data...")
         # Get all GPU items
         products = page.query_selector_all('a[data-cy="list-product"]')
         if not products:
@@ -148,12 +139,5 @@ if __name__ == "__main__":
 
     print("CPUs:\n", df_cpus.head(50))
     print("\nGPUs:\n", df_gpus.head())
-    hoje = get_today_date()
-    df_cpus.to_csv(f"data/raw/pichau/cpus/cpus_{hoje}.csv", index=False)
-    df_gpus.to_csv(f"data/raw/pichau/gpus/gpus_{hoje}.csv", index=False)
 
-    # for cpu in cpus:
-    #      print(f"Brand: {cpu['brand']}, Model: {cpu['base_model']}, Custom Model: {cpu['custom_model']}, Title: {cpu['full_title']}, Price: {cpu['cash_price']}, cores: {cpu['cores']}, threads: {cpu['threads']}, Base Clock: {cpu['clock_speed_base']}, Max Clock: {cpu['clock_speed_max']}, Cache: {cpu['cache_mb']}")
-    
-    # for gpu in gpus:
-    #     print(f"Brand: {gpu['brand']}, Model: {gpu['base_model']}, Custom Model: {gpu['custom_model']}, Price: {gpu['cash_price']}, Memory: {gpu['vram_memory']}, Manufacturer: {gpu['manufacturer']}, Title: {gpu['full_title']}")
+   

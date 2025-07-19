@@ -19,10 +19,8 @@ def terabyte_cpu_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Terabyte CPU page...")
         page.goto(url, timeout=60000)
 
-        print("Product cards loaded. Scraping CPU data...")
         # Get all CPU items
         products = page.query_selector_all('div.product-item__box')
         if not products:
@@ -77,10 +75,8 @@ def terabyte_gpu_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Terabyte GPU page...")
         page.goto(url, timeout=60000)
 
-        print("Product cards loaded. Scraping GPU data...")
         # Get all GPU items
         products = page.query_selector_all('div.product-item__box')
         if not products:
@@ -138,17 +134,15 @@ if __name__ == "__main__":
     gpus = terabyte_gpu_scraper()
     pd.options.display.max_columns = None
 
-    # if cpus:
-    #     print(f"Scraped {len(cpus)} CPUs from Terabyte.")
-    #     # Convert to DataFrame for better visualization
-    #     df = pd.DataFrame(cpus)
-    #     print(df.head())
-    # else:
-    #     print("No CPUs found.")
+    if cpus:
+        print(f"Scraped {len(cpus)} CPUs from Terabyte.")
+        df = pd.DataFrame(cpus)
+        print(df.head())
+    else:
+        print("No CPUs found.")
 
     if gpus:
         print(f"Scraped {len(gpus)} GPUs from Terabyte.")
-        # Convert to DataFrame for better visualization
         df_gpus = pd.DataFrame(gpus)
         print(df_gpus.head())
     else:

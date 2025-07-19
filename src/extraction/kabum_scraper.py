@@ -31,10 +31,8 @@ def kabum_cpu_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Kabum CPU page...")
         page.goto(url, timeout=60000)
 
-        print("Product cards loaded. Scraping CPU data...")
         # Get all CPU items
         products = page.query_selector_all('a.productLink')
         if not products:
@@ -89,10 +87,8 @@ def kabum_gpu_scraper():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)  # set to False to see the browser
         page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
-        print("Navigating to Kabum GPU page...")
         page.goto(url, timeout=60000)
 
-        print("Product cards loaded. Scraping GPU data...")
         # Get all GPU items
         products = page.query_selector_all('a.productLink')
         if not products:

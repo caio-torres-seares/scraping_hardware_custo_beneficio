@@ -183,6 +183,3 @@ def extract_gpu_manufacturer(title: str) -> str:
 def extract_gpu_memory(title: str) -> str:
     match = re.search(r"(\d+)\s*GB", title, re.IGNORECASE)
     return match.group(1) + "GB" if match else "N/A"
-
-def get_today_date() -> str:
-    return datetime.now().strftime("%Y-%m-%d")

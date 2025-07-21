@@ -13,6 +13,10 @@ def clean_price(price_str: str) -> float:
         return np.nan
 
 def transform_raw_data(raw_df: pd.DataFrame) -> pd.DataFrame:
+    if raw_df.empty:
+        print("DataFrame vazio. Nenhum dado será transformado.")
+        return pd.DataFrame()
+    
     df = raw_df.copy()
     
     print("Iniciando transformação: Normalizando colunas numéricas...")

@@ -19,19 +19,21 @@ logger = get_logger()
 
 def save_to_csv(df: pd.DataFrame, path: str):
     if df.empty:
-        logger.warning("DataFrame vazio. Nenhum dado será salvo.")
+        logger.warning("Empty DataFrame. No data will be saved.")
         return
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         df.to_csv(path, index=False)
-        logger.info(f"Arquivo salvo com sucesso em: {path}")
+        # em ingles
+        logger.info(f"File saved successfully in: {path}")
     except Exception as e:
-        logger.error(f"Erro ao salvar arquivo em {path}: {e}") 
+        logger.error(f"Error saving file in {path}: {e}") 
 
 
 def save_to_database(df: pd.DataFrame, table_name: str):
     if df.empty:
-        logger.warning("DataFrame vazio. Nenhum dado será salvo.")
+        # em ingles
+        logger.warning("Empty DataFrame. No data will be saved.")
         return
     
     save_to_postgresql(df, table_name)
@@ -72,9 +74,20 @@ def save_to_postgresql(df: pd.DataFrame, table_name: str):
                 index=False,
                 if_exists='append'
             )
-            logger.info(f"Dados inseridos na tabela '{table_name}': {len(new_data)} registros")
+            logger.info(f"Inserting {len(new_data)} new records into table '{table_name}'")
         else:
-            logger.info(f"Sem novos dados da {df['store'].iloc[0]} para inserir em '{table_name}'. Data mais recente já existe.")
+            logger.info(f"No new data from {df['store'].iloc[0]} to insert into table '{table_name}'. Most recent date already exists.")
             
     except Exception as e:
-        logger.error(f"Erro ao salvar tabela '{table_name}': {e}")
+        logger.error(f"Error saving in table '{table_name}': {e}")
+
+def load_from_database(table_name: str) -> pd.DataFrame:
+    try:
+        engine = create_engine(DATABASE_URL)
+        df = pd.read_sql_table(table_name, engine)
+        logger.info(f"Loaded {len(df)} records from table '{table_name}'")
+
+        return df
+    except Exception as e:
+        logger.error(f"Error loading table '{table_name}': {e}")
+        return pd.DataFrame()

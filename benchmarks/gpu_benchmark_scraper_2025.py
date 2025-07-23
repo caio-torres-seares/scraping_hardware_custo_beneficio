@@ -38,7 +38,7 @@ def scraping_benchmark(url):
                         pontos = int(match.group(2))
 
                     resultados.append({
-                        "GPU": nome,
+                        "Placa de Vídeo": nome,
                         "Pontuação": pontos
                     })
 

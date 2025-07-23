@@ -132,7 +132,7 @@ def extract_cpu_model_and_variant(title: str, brand: str) -> tuple[str, str]:
                 variant = f"ULTRA {variant_match.group(1)}"
 
         else:
-            match = re.search(r"I[3579]-?\s?(\d{4,5}[A-Z]{0,2})", title_upper)
+            match = re.search(r"I[3579][,\s-]*?(\d{4,5}[A-Z]{0,2})", title_upper)
             if match:
                 base_model = match.group(1).strip()
                 variant_match = re.search(r"CORE\s(I[3579])", title_upper)

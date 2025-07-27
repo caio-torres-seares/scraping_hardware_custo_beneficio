@@ -74,7 +74,7 @@ def save_to_postgresql(df: pd.DataFrame, table_name: str):
                 index=False,
                 if_exists='append'
             )
-            logger.info(f"Inserting {len(new_data)} new records into table '{table_name}'")
+            logger.info(f"Inserting {len(new_data)} records from {df['store'].iloc[0]} into table '{table_name}'")
         else:
             logger.info(f"No new data from {df['store'].iloc[0]} to insert into table '{table_name}'. Most recent date already exists.")
             
@@ -91,3 +91,33 @@ def load_from_database(table_name: str) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"Error loading table '{table_name}': {e}")
         return pd.DataFrame()
+    
+# função pra buscar os dados mais recentes do banco
+def load_latest_data_from_database(table_name: str) -> pd.DataFrame:
+    """
+    Carrega dados de uma tabela específica no PostgreSQL, mas APENAS
+    para a data de extração mais recente disponível naquela tabela.
+    """
+    logger = get_logger()
+    logger.info(f"Carregando dados mais recentes da tabela: {table_name}")
+    
+    try:
+        engine = create_engine(DATABASE_URL)
+        
+        # Esta query SQL primeiro encontra a data mais recente na tabela
+        # e depois seleciona todas as linhas que correspondem a essa data.
+        query = f"""
+            SELECT *
+            FROM {table_name}
+            WHERE extraction_date = (SELECT MAX(extraction_date) FROM {table_name});
+        """
+        
+        with engine.connect() as connection:
+            df = pd.read_sql(query, connection)
+        
+        logger.info(f"✅ {len(df)} linhas carregadas com sucesso da extração mais recente.")
+        return df
+
+    except Exception as e:
+        logger.error(f"❌ Erro ao carregar dados do PostgreSQL: {e}")
+        return pd.DataFrame() # Retorna um DataFrame vazio em caso de erro

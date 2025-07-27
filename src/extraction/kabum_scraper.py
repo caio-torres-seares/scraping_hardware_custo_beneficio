@@ -35,7 +35,7 @@ def kabum_cpu_scraper():
     url = "https://www.kabum.com.br/hardware/processadores"
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)  # set to False to see the browser
+            browser = p.chromium.launch(headless=True)  # set to False to see the browser
             page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
             page.goto(url, timeout=60000)
 
@@ -55,7 +55,7 @@ def kabum_cpu_scraper():
                     product_title = name_tag.inner_text().strip() if name_tag else "N/A"
 
                     link = product.get_attribute("href")
-                    product_link = "https://www.kabum.com.br/produto" + link if link else "N/A"
+                    product_link = "https://www.kabum.com.br/" + link if link else "N/A"
 
                     price_tag = product.query_selector("span.priceCard")
                     product_price_cash = price_tag.inner_text().strip() if price_tag else None
@@ -95,7 +95,7 @@ def kabum_gpu_scraper():
     url = "https://www.kabum.com.br/hardware/placa-de-video-vga"
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)  # set to False to see the browser
+            browser = p.chromium.launch(headless=True)  # set to False to see the browser
             page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36")
             page.goto(url, timeout=60000)
 
@@ -115,7 +115,7 @@ def kabum_gpu_scraper():
                     product_title = name_tag.inner_text().strip() if name_tag else "N/A"
 
                     link = product.get_attribute("href")
-                    product_link = "https://www.kabum.com.br/produto" + link if link else "N/A"
+                    product_link = "https://www.kabum.com.br/" + link if link else "N/A"
 
                     price_tag = product.query_selector("span.priceCard")
                     product_price_cash = price_tag.inner_text().strip() if price_tag else None

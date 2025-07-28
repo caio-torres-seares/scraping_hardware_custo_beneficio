@@ -4,10 +4,10 @@ import re
 import sys
 import os
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.logger import get_logger
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from extraction.scraper_utils import (
+from src.extraction.scraper_utils import (
     extract_parcel_info_pichau,
     extract_gpu_memory,
     extract_brand,

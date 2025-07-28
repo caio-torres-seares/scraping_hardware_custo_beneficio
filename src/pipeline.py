@@ -1,5 +1,5 @@
 from src.extraction.pichau_scraper import pichau_cpu_scraper, pichau_gpu_scraper
-from src.extraction.kabum_scraper import kabum_cpu_scraper, kabum_gpu_scraper
+from src.extraction.kabum_scraper import kabum_scraper
 from src.extraction.terabyte_scraper import terabyte_cpu_scraper, terabyte_gpu_scraper
 from src.transform.transform import transform_raw_data
 from src.load.load import save_to_csv, save_to_database
@@ -17,8 +17,8 @@ def run_pipeline():
     pichau_gpu = pd.DataFrame(pichau_gpu_scraper())
 
     logger.info("Extraindo dados da Kabum...")
-    kabum_cpu = pd.DataFrame(kabum_cpu_scraper())
-    kabum_gpu = pd.DataFrame(kabum_gpu_scraper())
+    kabum_cpu = pd.DataFrame(kabum_scraper("https://www.kabum.com.br/hardware/processadores","CPU"))
+    kabum_gpu = pd.DataFrame(kabum_scraper("https://www.kabum.com.br/hardware/placa-de-video-vga","GPU"))
     
     logger.info("Extraindo dados da Terabyte...")
     terabyte_cpu = pd.DataFrame(terabyte_cpu_scraper())

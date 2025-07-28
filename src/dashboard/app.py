@@ -159,10 +159,9 @@ else:
     col1.metric(f"Modelos Únicos", df_filtrado_cheapest.shape[0])
     col2.metric("Pontuação Máxima", f"{df_filtrado_cheapest['Pontuação'].max():.0f}")
     col3.metric("Melhor Custo-Benefício", f"{df_filtrado_cheapest['cost_benefit_ratio_formatted'].min()}")
-
+    
     st.subheader("🔍 Ver todas as ofertas para um modelo")
-    top_10_pontuacao = df_filtrado_cheapest.sort_values(by="Pontuação", ascending=False).head(10)
-    top_10_custo_beneficio = df_filtrado_cheapest.sort_values(by="cost_benefit_ratio_formatted", ascending=False).head(10)
+    
     modelos_disponiveis = df_filtrado_cheapest[nome_coluna_modelo].unique().tolist()
     
     modelo_selecionado = st.selectbox(
@@ -186,13 +185,17 @@ else:
             hide_index=True, use_container_width=True
         )
 
-    st.subheader("🔥 Top 10 por Pontuação (Melhor Oferta de Cada Modelo)")
+    st.subheader("🔥 Ranking por Pontuação (Melhor Oferta de Cada Modelo)")
     st.info("Pontuação de Benchmark. Quanto maior a pontuação, melhor o desempenho.")
 
+    top_pontuacao = df_filtrado_cheapest.sort_values(by="Pontuação", ascending=False)
+
     st.dataframe(
-        top_10_pontuacao,
+        top_pontuacao,
         column_config={
-            nome_coluna_modelo: "Modelo", "cash_price": None, "cash_price_formatted": "Preço (R$)",
+            nome_coluna_modelo: "Modelo", 
+            "cash_price": None, 
+            "cash_price_formatted": "Preço (R$)",
             "Pontuação": st.column_config.ProgressColumn("Pontuação", format="%d", min_value=0, max_value=int(df_filtrado_cheapest["Pontuação"].max())),
             "cost_benefit_ratio_formatted": "Preço por Pontuação", "store": "Loja",
             "link": st.column_config.LinkColumn("Link da Melhor Oferta", display_text="Ver na Loja ▸")
@@ -201,15 +204,17 @@ else:
         hide_index=True, use_container_width=True
     )
 
-    st.subheader("💸 Top 10 por Custo-Benefício (Melhor Oferta de Cada Modelo)")
+    st.subheader("💸 Ranking de Custo-Benefício (Melhor Oferta de Cada Modelo)")
     st.info("Preço por pontuação. Quanto menor o Preço por pontuação, melhor o custo-benefício.")
 
-    top_10_custo_beneficio = top_10_custo_beneficio.sort_values(by="cost_benefit_ratio_formatted", ascending=True)
-
+    top_custo_beneficio = df_filtrado_cheapest.sort_values(by="cost_benefit_ratio", ascending=True)
+    
     st.dataframe(
-        top_10_custo_beneficio,
+        top_custo_beneficio,
         column_config={
-            nome_coluna_modelo: "Modelo", "cash_price": None, "cash_price_formatted": "Preço (R$)",
+            nome_coluna_modelo: "Modelo", 
+            "cash_price": None, 
+            "cash_price_formatted": "Preço (R$)",
             "Pontuação": st.column_config.ProgressColumn("Pontuação", format="%d", min_value=0, max_value=int(df_filtrado_cheapest["Pontuação"].max())),
             "cost_benefit_ratio_formatted": "Preço por Pontuação", "store": "Loja",
             "link": st.column_config.LinkColumn("Link da Melhor Oferta", display_text="Ver na Loja ▸")

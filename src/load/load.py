@@ -121,3 +121,32 @@ def load_latest_data_from_database(table_name: str) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"❌ Erro ao carregar dados do PostgreSQL: {e}")
         return pd.DataFrame() # Retorna um DataFrame vazio em caso de erro
+
+def load_product_history_from_database(table_name: str, base_model: str) -> pd.DataFrame:
+    """
+    Busca no banco de dados o histórico de preços completo para uma chave de produto normalizada específica.
+    """
+    try:
+        logger = get_logger()
+
+        engine = create_engine(DATABASE_URL)
+        table_name = table_name.lower()
+
+        query = f"""
+            SELECT extraction_date, cash_price, store
+            FROM {table_name}
+            WHERE base_model = %(model)s
+        """
+        params = {'model': base_model}
+
+        logger.info(f"Buscando histórico para o modelo '{base_model}' na tabela '{table_name}'")
+
+
+        with engine.connect() as connection:
+            df_history = pd.read_sql(query, connection, params=params)
+            
+        return df_history
+
+    except Exception as e:
+        print(f"Erro ao buscar histórico do produto {base_model}: {e}")
+        return pd.DataFrame() # Retorna um DataFrame vazio em caso de erro

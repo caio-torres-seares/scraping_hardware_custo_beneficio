@@ -12,7 +12,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from src.load.load import load_latest_data_from_database
+from src.load.load import load_latest_data_from_database, load_product_history_from_database
 
 try:
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
@@ -184,6 +184,52 @@ else:
             column_order=["full_title", "cash_price_formatted", "store", "link"],
             hide_index=True, use_container_width=True
         )
+
+        base_model_selecionado = df_filtrado_cheapest[df_filtrado_cheapest[nome_coluna_modelo] == modelo_selecionado]['base_model'].iloc[0]
+        st.subheader(f"📈 Histórico de Menores Preços para {modelo_selecionado}")
+
+        #1: Selecionar o dataframe histórico correto (CPUs ou GPUs)
+        table_name = "CPUs" if tipo_produto == "CPUs" else "GPUs"
+        
+        #2: Filtrar o histórico para o modelo selecionado
+        with st.spinner("Buscando histórico de preços..."):
+            historico_do_modelo = load_product_history_from_database(
+                table_name=table_name,
+                base_model=base_model_selecionado
+            )
+        
+        #3: Encontrar a oferta mais barata de cada dia de extração
+        if not historico_do_modelo.empty:
+            melhores_ofertas_diarias = historico_do_modelo.loc[
+                historico_do_modelo.groupby('extraction_date')['cash_price'].idxmin()
+            ].sort_values(by='extraction_date')
+
+            #4: Gerar e exibir o gráfico apenas se houver histórico suficiente
+            if len(melhores_ofertas_diarias) > 1:
+                fig_historico = px.line(
+                    melhores_ofertas_diarias,
+                    x='extraction_date',
+                    y='cash_price',
+                    title=f'Evolução do Menor Preço Encontrado para {modelo_selecionado}',
+                    markers=True, # Adiciona pontos sobre a linha para cada data
+                    hover_data={
+                        'store': True, # Mostra a loja no hover
+                        'cash_price': ':.2f' # Formata o preço no hover
+                    },
+                    labels={
+                        'extraction_date': 'Data da Coleta',
+                        'cash_price': 'Menor Preço (R$)',
+                        'store': 'Loja com Melhor Preço'
+                    }
+                )
+                fig_historico.update_traces(line=dict(width=3))
+                fig_historico.update_layout(
+                    xaxis_title="Data",
+                    yaxis_title="Preço (R$)"
+                )
+                st.plotly_chart(fig_historico, use_container_width=True)
+            else:
+                st.info("Não há dados históricos suficientes para gerar um gráfico de evolução de preços para este modelo.")
 
     st.subheader("🔥 Ranking por Pontuação (Melhor Oferta de Cada Modelo)")
     st.info("Pontuação de Benchmark. Quanto maior a pontuação, melhor o desempenho.")

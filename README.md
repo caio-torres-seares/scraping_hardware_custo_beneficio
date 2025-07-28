@@ -94,6 +94,10 @@ O dashboard oferece:
 - 📈 **Análise** histórica de preços
 - 🔍 **Filtros** avançados
 
+![Exemplo do Dashboard](src/dashboard/imgs/tela-inicial.png)
+![Ranking Custo-Benefício](src/dashboard/imgs/custo-beneficio.png)
+![Histórico de um produto](src/dashboard/imgs/historico.png)
+
 
 ## 🔧 Configuração
 
